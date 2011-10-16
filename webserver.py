@@ -129,9 +129,9 @@ class RequestHandler(BaseHTTPRequestHandler):
 
     jsfields = "fields=%s;\n" % ", ".join(map(lambda(x): "\"%s\"" % x, fields));
 
-    f = open(curdir + sep + "graph.template")
+    f = open(curdir + sep + "www/graph.template")
     template = Template(f.read())
-    html = template.substitute(javascriptFields=jsFields)
+    html = template.substitute(javascriptFields=jsfields)
     self.genericHeader(200, 'text/html')
     self.wfile.write(html)
     f.close()
