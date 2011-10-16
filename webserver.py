@@ -127,8 +127,7 @@ class RequestHandler(BaseHTTPRequestHandler):
       if (value == 'REAL' or value == 'INTEGER'):
         fields.append(key)
 
-    jsfields = "fields=%s;\n" %
-        ", ".join(map(lambda(x): "\"%s\"" % x, fields));
+    jsfields = "fields=%s;\n" % ", ".join(map(lambda(x): "\"%s\"" % x, fields));
 
     f = open(curdir + sep + "graph.template")
     template = Template(f.read())
