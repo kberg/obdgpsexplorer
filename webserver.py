@@ -13,6 +13,7 @@ import time
 
 from os import curdir, sep, path
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+from string import Template
 
 global port
 global db
@@ -89,9 +90,6 @@ class RequestHandler(BaseHTTPRequestHandler):
 </html>
 """)
 
-  def processGraph(self, conn):
-    self.send_error(404, "In Progress")
-
   def processCsv(self, conn):
 
     # Read the schema to find out which fields to export.
@@ -121,6 +119,24 @@ class RequestHandler(BaseHTTPRequestHandler):
     self.genericHeader(200, 'text/html')
     self.wfile.write(intermediateOutput.getvalue())
 
+  def processGraph(self, conn):
+    fields = [];
+    schema = readSchema(conn)
+    for key, value in schema.items():
+      if (key == 'time'): continue
+      if (value == 'REAL' or value == 'INTEGER'):
+        fields.append(key)
+
+    jsfields = "fields=%s;\n", 
+        ", ".join(map(lambda(x): "\"%s\"" % x, fields));
+
+    f = open(curdir + sep + "graph.template")
+    template = Template(f.read())
+    html = template.substitute(javascriptFields=jsFields)
+    self.genericHeader(200, 'text/html')
+    self.wfile.write(html)
+    f.close()
+
   def do_GET(self):
     try:
       if self.path == "/test":
@@ -139,13 +155,6 @@ class RequestHandler(BaseHTTPRequestHandler):
         self.processCsv(conn)
         return
 
-      #      self.send_error(404,'Not Found: %s' % self.path)
-      #      if self.path.endswith(".html"):
-      #        f = open(curdir + sep + self.path) #self.path has /test.html
-      #        self.genericHeader(200, 'text/html')
-      #        self.wfile.write(f.read())
-      #        f.close()
-      #        return
       return
                 
     except IOError as (errno, strerror):
