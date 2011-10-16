@@ -1,0 +1,13 @@
+(c) Robert Konigsberg 2011, All Rights Reserved.
+
+License TBD
+
+This is a web server-based explorer for obdgpslogger data, which can be found at http://icculus.org/obdgpslogger/
+
+Currently this only views gps data across all trips.
+
+Other components used:
+* Dygraphs: Copyright (c) 2009 Dan Vanderkam
+* Python web server: Copyright Jon Berg , turtlemeat.com
+* Merging all the OBD databases together: https://github.com/kberg/obdgpsmerge
+* sqlite3 csv export: http://stackoverflow.com/questions/4264379/it-is-possible-export-table-sqlite3-table-to-csv-or-similiar
