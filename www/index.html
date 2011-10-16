@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7; IE=EmulateIE9">
+    <title>obdgpslogger explorer</title>
+    <script type="text/javascript" src="dygraph-combined.js"></script>
+    <script type="text/javascript">
+      var fields=["trip", "ecu", "load_pct", "temp", "rpm", "vss", "maf", "throttlepos", "fli", "baro", "load_abs", "aat"]
+    </script>
+  </head>
+  <body>
+    <table><tr><td>
+    <div id="graphdiv"></div>
+    </td><td valign=top>
+    <div id="status" style="width:200px; font-size:0.8em; padding-top:5px;"></div>
+    </td>
+    </tr></table>
+    <div id="fields"></div>
+    <script type="text/javascript">
+      function setCheckboxes() {
+        var div = document.getElementById("fields");
+        for (var idx = 0; idx < fields.length; idx++) {
+          var inner = document.createElement("div");
+          var checkbox = document.createElement("input");
+          var label = document.createElement("label");
+
+          checkbox.type="checkbox";
+          checkbox.onClick = function() { change(checkbox); };
+          checkbox.id = idx;
+          checkbox.checked = 1;
+          label.for=idx;
+          label.innerText = " " + fields[idx];
+
+          inner.appendChild(checkbox);
+          inner.appendChild(label);
+          div.appendChild(inner);
+        }
+      }
+
+      function setStatus() {
+        document.getElementById("visibility").innerHTML =
+          g.visibility().toString();
+      }
+
+      function change(el) {
+        g.setVisibility(parseInt(el.id), el.checked);
+        setStatus();
+      }
+
+      setCheckboxes();
+
+      g = new Dygraph(
+              document.getElementById("graphdiv"),
+              'http://localhost:8080/export.csv',
+              {
+                labelsDiv: document.getElementById('status'),
+                labelsSeparateLines: true,
+                labelsKMB: true,
+                legend: 'always',
+                width: 640,
+                height: 480,
+                title: 'Cross Country!',
+                xlabel: 'Time',
+                axisLineColor: 'white',
+                // xValueFormatter: Dygraph.dateString_,
+                xValueParser: function(x) { return 1000*parseInt(x); },
+                xTicker: Dygraph.dateTicker,
+                'rpm': {
+                  axis: {}
+                },
+              axes: {
+                x: {
+                  axisLabelFormatter: function(d, gran) {
+                    return Dygraph.zeropad(d.getHours()) + ":"
+                        + Dygraph.zeropad(d.getMinutes()) + ":"
+                        + Dygraph.zeropad(d.getSeconds());
+                  }
+                }
+
+              }
+}
+          );
+    </script>
+</body>
+</html>
+
