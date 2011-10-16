@@ -5,7 +5,7 @@
     <title>obdgpslogger explorer</title>
     <script type="text/javascript" src="dygraph-combined.js"></script>
     <script type="text/javascript">
-      var fields=["trip", "ecu", "load_pct", "temp", "rpm", "vss", "maf", "throttlepos", "fli", "baro", "load_abs", "aat"]
+      $javascriptFields
     </script>
   </head>
   <body>
