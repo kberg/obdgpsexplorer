@@ -1,11 +1,18 @@
 # Based on python web server, copyright Jon Berg , turtlemeat.com
 
-import string,cgi,time
+import cgi
+import codecs
+import csv
+import cStringIO
+import getopt
+import sqlite3
+import string
+import StringIO
+import sys
+import time
+
 from os import curdir, sep, path
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
-import getopt
-import sys
-import sqlite3
 
 global port
 global db
@@ -15,17 +22,53 @@ global conn
 port = 80
 db = 'obdgpslogger.db'
 
-class RequestHandler(BaseHTTPRequestHandler):
+count = 0
 
-  # Get handlers:
-  # schema displays schema in a nice format
-  # csv is a servlet to return data in csv format, used by graph.
-  # graph is a servlet to render a graph
+class UnicodeWriter:
+  def __init__(self, f, dialect=csv.excel, encoding="utf-8", **kwds):
+    # Redirect output to a queue
+    self.queue = cStringIO.StringIO()
+    self.writer = csv.writer(self.queue, dialect=dialect, **kwds)
+    self.stream = f
+    self.encoder = codecs.getincrementalencoder(encoding)()
+
+  def writerow(self, row):
+    # Prevent converting None into unicode 'None' string.
+    def f(x): return unicode(s).encode("utf-8") if s else None
+
+    self.writer.writerow([f(s) for s in row])
+
+    # Fetch UTF-8 output from the queue ...
+    data = self.queue.getvalue()
+    data = data.decode("utf-8")
+    # ... and reencode it into the target encoding
+    data = self.encoder.encode(data)
+    # write to the target stream
+    self.stream.write(data)
+    # empty queue
+    self.queue.truncate(0)
+
+  def writerows(self, rows):
+    for row in rows:
+      self.writerow(row)
+
+class RequestHandler(BaseHTTPRequestHandler):
 
   def genericHeader(self, code, type):
     self.send_response(code)
     self.send_header('Content-type', type)
     self.end_headers()
+
+  def processTest(self):
+    self.genericHeader(200, 'text/html')
+    self.wfile.write("""
+<html>
+<head><title>Test page</title></head>
+<body>
+  URL: %s
+</body>
+</html>
+""" % (self.path))
 
   def processSchema(self, conn):
     schema = readSchema(conn)
@@ -38,7 +81,6 @@ class RequestHandler(BaseHTTPRequestHandler):
 <table border="1">
 <tr><th>Name</td><th>Type</th></tr>
 """)
-
     for key, value in schema.items():
       self.wfile.write("<tr><td>%s</td><td>%s</td></tr>\n" % (key, value))
     self.wfile.write("""
@@ -47,46 +89,73 @@ class RequestHandler(BaseHTTPRequestHandler):
 </html>
 """)
 
+  def processGraph(self, conn):
+    self.send_error(404, "In Progress")
+
+  def processCsv(self, conn):
+
+    # Read the schema to find out which fields to export.
+    fields = []
+    schema = readSchema(conn)
+    for key, value in schema.items():
+      if (key == 'time'): continue
+      if (value == 'REAL' or value == 'INTEGER'):
+        fields.append(key)
+ 
+    c = conn.cursor()
+    sql = "select time, %s from obd" % (','.join(fields))
+    c.execute(sql)
+
+    # Using a StringIO as an intermediate object. Probably more efficient
+    # to use some version of select/recv, but I don't know how to do that.
+    intermediateOutput = StringIO.StringIO()
+    writer = UnicodeWriter(intermediateOutput)
+
+    # Write the header
+    headers = ["Date"]
+    headers.extend(fields)
+    writer.writerow(headers)
+
+    writer.writerows(c)
+
+    self.genericHeader(200, 'text/html')
+    self.wfile.write(intermediateOutput.getvalue())
+
   def do_GET(self):
     try:
       if self.path == "/test":
-        self.genericHeader(200, 'text/html')
-        self.wfile.write("""
-<html>
-<head><title>Test page</title></head>
-<body>
-  URL: %s
-</body>
-</html>
-""" % (self.path))
-        return
-      if self.path == "/schema":
-        self.processSchema(conn)
-      if self.path.endswith(".html"):
-        f = open(curdir + sep + self.path) #self.path has /test.html
-        #note that this potentially makes every file on your computer readable by the internet
-        self.genericHeader(200, 'text/html')
-        self.wfile.write(f.read())
-        f.close()
-        return
-      if self.path.endswith(".csv"):
-        f = open(curdir + sep + self.path) #self.path has /test.html
-        #note that this potentially makes every file on your computer readable by the internet
-        self.genericHeader(200, 'text/text')
-        self.wfile.write(f.read())
-        f.close()
+        self.processTest()
         return
 
+      if self.path == "/schema":
+        self.processSchema(conn)
+        return
+
+      if self.path == "/graph":
+        self.processGraph(conn)
+        return
+
+      if self.path == "/csv":
+        self.processCsv(conn)
+        return
+
+      #      self.send_error(404,'Not Found: %s' % self.path)
+      #      if self.path.endswith(".html"):
+      #        f = open(curdir + sep + self.path) #self.path has /test.html
+      #        self.genericHeader(200, 'text/html')
+      #        self.wfile.write(f.read())
+      #        f.close()
+      #        return
       return
                 
-    except IOError:
-      self.send_error(404,'File Not Found: %s' % self.path)
+    except IOError as (errno, strerror):
+      sys.stderr.write("I/O error({0}): {1}\n".format(errno, strerror))
+      # self.send_error(404,'File Not Found: %s' % self.path)
 
 def usage():
   sys.stderr.write(
       "Usage: %s [--port=port] [--db=dbname] [-? / -h / --help]\n" %
       sys.argv[0])
-
 
 def readSchema(conn):
   cur = conn.cursor();
@@ -137,8 +206,6 @@ def main(argv):
     # see http://docs.python.org/library/sqlite3.html
     conn.row_factory = sqlite3.Row
 
-    # Remove, just testing for now
-    print readSchema(conn)
     print 'starting web server on port %d' % port
     server = HTTPServer(('', port), RequestHandler)
     print 'started httpserver.'
