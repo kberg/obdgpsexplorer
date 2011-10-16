@@ -49,9 +49,11 @@
 
       setCheckboxes();
 
+      var dataUrl = window.location.href.replace(/\/graph$/, "csv")
+
       g = new Dygraph(
               document.getElementById("graphdiv"),
-              'http://localhost:8080/export.csv',
+              dataUrl,
               {
                 labelsDiv: document.getElementById('status'),
                 labelsSeparateLines: true,
