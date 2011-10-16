@@ -127,7 +127,7 @@ class RequestHandler(BaseHTTPRequestHandler):
       if (value == 'REAL' or value == 'INTEGER'):
         fields.append(key)
 
-    jsfields = "fields=%s;\n", 
+    jsfields = "fields=%s;\n" %
         ", ".join(map(lambda(x): "\"%s\"" % x, fields));
 
     f = open(curdir + sep + "graph.template")
@@ -139,6 +139,7 @@ class RequestHandler(BaseHTTPRequestHandler):
 
   def do_GET(self):
     try:
+      print "Received %s" % self.path
       if self.path == "/test":
         self.processTest()
         return
@@ -211,10 +212,11 @@ def main(argv):
   if (not path.exists(db)):
     assert False, "Database %s does not exist" % db
   conn = sqlite3.connect(db)
-  try:
-    # see http://docs.python.org/library/sqlite3.html
-    conn.row_factory = sqlite3.Row
+  # see http://docs.python.org/library/sqlite3.html
+  conn.row_factory = sqlite3.Row
+  print "Connected to database."
 
+  try:
     print 'starting web server on port %d' % port
     server = HTTPServer(('', port), RequestHandler)
     print 'started httpserver.'
