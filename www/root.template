@@ -8,5 +8,8 @@
   <a href="/about">Schema and other information</a><p/>
   <a href="/graph">Graph view</a><p/>
   <a href="/csv">Raw CSV data</a><p/>
+
+<hr/>
+<a href="https://github.com/kberg/obdgpsexplorer">obdgpsexplorer</a> Copyright (c) 2011, Robert Konigsberg.
 </body>
 </html>
