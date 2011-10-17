@@ -1,0 +1,12 @@
+<html>
+<head>
+<title>OBDGPS Explorer</title>
+<//head>
+<body>
+  You probably want one of these links:
+  <p/>
+  <a href="/about">Schema and other information</a><p/>
+  <a href="/graph">Graph view</a><p/>
+  <a href="/csv">Raw CSV data</a><p/>
+</body>
+</html>
