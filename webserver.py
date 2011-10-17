@@ -63,25 +63,11 @@ class RequestHandler(BaseHTTPRequestHandler):
 
   def processAbout(self, conn):
     schema = readSchema(conn)
-    self.genericHeader(200, 'text/html')
-    self.wfile.write("""
-<html>
-<head><title>Schema</title></head>
-<body>
-<h2>Database Schema</h2>
-""")
-    self.wfile.write("Row count: %d <br/>\n" % getRowCount(conn, "obd"))
-    self.wfile.write("""
-<table border="1">
-<tr><th>Name</td><th>Type</th></tr>
-""")
-    for key, value in schema.items():
-      self.wfile.write("<tr><td>%s</td><td>%s</td></tr>\n" % (key, value))
-    self.wfile.write("""
-</table>
-</body>
-</html>
-""")
+    rowCount = getRowCount(conn, "obd")
+    def fmtline(key, value):
+      return "<tr><td>%s</td><td>%s</td></tr>\n" % (key, value)
+    fields = "\n".join([ fmtline(key, value) for key, value in schema.items()])
+    self.renderTemplate("www/about.template", fields=fields, rowCount=rowCount)
 
   def processCsv(self, conn):
 
@@ -112,10 +98,10 @@ class RequestHandler(BaseHTTPRequestHandler):
     self.genericHeader(200, 'text/html')
     self.wfile.write(intermediateOutput.getvalue())
 
-  def renderTemplate(self, file, dict):
+  def renderTemplate(self, file, **kwds):
     f = open(curdir + sep + file)
     template = Template(f.read())
-    html = template.substitute(dict)
+    html = template.substitute(**kwds)
     self.genericHeader(200, 'text/html')
     self.wfile.write(html)
     f.close()

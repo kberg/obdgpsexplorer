@@ -2,12 +2,10 @@
 <head><title>Schema</title></head>
 <body>
 <h2>Database Schema</h2>
+Row count: $rowCount </br>
 <table border="1">
 <tr><th>Name</td><th>Type</th></tr>
-""")
-    for key, value in schema.items():
-      self.wfile.write("<tr><td>%s</td><td>%s</td></tr>\n" % (key, value))
-    self.wfile.write("""
+$fields
 </table>
 </body>
 </html>
