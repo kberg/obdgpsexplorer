@@ -1,4 +1,5 @@
-# Based on python web server, copyright Jon Berg , turtlemeat.com
+# (C) Robert Konigsberg 2011, All Rights Reserved.
+# Web Server components based on python web server, copyright Jon Berg , turtlemeat.com
 
 import cgi
 import codecs
@@ -60,18 +61,7 @@ class RequestHandler(BaseHTTPRequestHandler):
     self.send_header('Content-type', type)
     self.end_headers()
 
-  def processTest(self):
-    self.genericHeader(200, 'text/html')
-    self.wfile.write("""
-<html>
-<head><title>Test page</title></head>
-<body>
-  URL: %s
-</body>
-</html>
-""" % (self.path))
-
-  def processSchema(self, conn):
+  def processAbout(self, conn):
     schema = readSchema(conn)
     self.genericHeader(200, 'text/html')
     self.wfile.write("""
@@ -119,6 +109,14 @@ class RequestHandler(BaseHTTPRequestHandler):
     self.genericHeader(200, 'text/html')
     self.wfile.write(intermediateOutput.getvalue())
 
+  def renderTemplate(self, file, dict):
+    f = open(curdir + sep + file)
+    template = Template(f.read())
+    html = template.substitute(dict)
+    self.genericHeader(200, 'text/html')
+    self.wfile.write(html)
+    f.close()
+  
   def processGraph(self, conn):
     fields = [];
     schema = readSchema(conn)
@@ -127,7 +125,7 @@ class RequestHandler(BaseHTTPRequestHandler):
       if (value == 'REAL' or value == 'INTEGER'):
         fields.append(key)
 
-    jsfields = "fields=%s;\n" % ", ".join(map(lambda(x): "\"%s\"" % x, fields));
+    jsfields = "fields=[%s];\n" % ", ".join(map(lambda(x): "\"%s\"" % x, fields));
 
     f = open(curdir + sep + "www/graph.template")
     template = Template(f.read())
@@ -136,15 +134,24 @@ class RequestHandler(BaseHTTPRequestHandler):
     self.wfile.write(html)
     f.close()
 
+  def sendFile(self, name, type):
+    f = open(curdir + sep + name)
+    self.genericHeader(200, type);
+    self.wfile.write(f.read())
+    f.close()
+
   def do_GET(self):
     try:
-      print "Received %s" % self.path
-      if self.path == "/test":
-        self.processTest()
+      if self.path == "/":
+        self.renderTemplate("www/root.template", {})
         return
 
-      if self.path == "/schema":
-        self.processSchema(conn)
+      if self.path == "/test":
+        self.renderTemplate("www/test.template", path=self.path)
+        return
+
+      if self.path == "/about":
+        self.processAbout(conn)
         return
 
       if self.path == "/graph":
@@ -155,8 +162,21 @@ class RequestHandler(BaseHTTPRequestHandler):
         self.processCsv(conn)
         return
 
+      if self.path == "/interaction.js":
+        self.sendFile("www/interaction.js", "text/javascript")
+        return
+
+      if self.path == "/dygraph-combined.js":
+        self.sendFile("www/dygraph-combined.js", "text/javascript")
+        return
+
+      if self.path == "/favicon.ico":
+        self.sendFile("www/favicon.ico", "image/x-icon")
+        return
+
+      self.send_error(404,'Unmapped Resource: %s' % self.path)
       return
-                
+
     except IOError as (errno, strerror):
       sys.stderr.write("I/O error({0}): {1}\n".format(errno, strerror))
       # self.send_error(404,'File Not Found: %s' % self.path)
@@ -185,6 +205,13 @@ def readSchema(conn):
     schema[arry[0]] = arry[1]
   cur.close()
   return schema
+
+def countRows(conn, table):
+  cur = conn.cursor();
+  cur.execute("select count(0) from table");
+  row = cur.fetchone()
+  contents = row[0]
+  return int(contents)
 
 def parseArgs(argv):
   global db
