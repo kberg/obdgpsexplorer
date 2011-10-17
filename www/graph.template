@@ -34,15 +34,17 @@
         var div = document.getElementById("fields");
         for (var idx = 0; idx < fields.length; idx++) {
           var inner = document.createElement("span");
+          inner.style.paddingLeft = "3px";
+          inner.style.paddingRight = "3px";
           var checkbox = document.createElement("input");
           var label = document.createElement("label");
 
           checkbox.type="checkbox";
-          checkbox.onclick = function() { change(checkbox); };
+          checkbox.onclick = function(e) { change(e); };
           checkbox.id = idx;
           checkbox.checked = 1;
           label.for=idx;  // label.for is not working.
-          label.innerText = " " + fields[idx];
+          label.innerText = fields[idx];
 
           inner.appendChild(checkbox);
           inner.appendChild(label);
@@ -50,8 +52,9 @@
         }
       }
 
-      function change(el) {
-        g.setVisibility(parseInt(el.id), el.checked);
+      function change(event) {
+        var checkbox = event.currentTarget;
+        g.setVisibility(parseInt(checkbox.id), checkbox.checked);
       }
 
       var drawCallback = function(g, isInitial) {
