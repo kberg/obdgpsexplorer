@@ -5,9 +5,9 @@
 <body>
   You probably want one of these links:
   <p/>
-  <a href="/about">Schema and other information</a><p/>
-  <a href="/graph">Graph view</a><p/>
-  <a href="/csv">Raw CSV data</a><p/>
+  <a href="/about">Schema and other information</a><br/>
+  <a href="/graph">Graph view</a><br/>
+  <a href="/csv">Raw CSV data</a><br/>
 
 <hr/>
 <a href="https://github.com/kberg/obdgpsexplorer">obdgpsexplorer</a> Copyright (c) 2011, Robert Konigsberg.

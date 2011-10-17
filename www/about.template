@@ -19,5 +19,7 @@
     document.getElementById("earliest").innerText = new Date( $earliestDate ).toString();
     document.getElementById("latest").innerText = new Date( $latestDate ).toString();
   </script>
+<hr/>
+<a href="https://github.com/kberg/obdgpsexplorer">obdgpsexplorer</a> Copyright (c) 2011, Robert Konigsberg.
 </body>
 </html>
