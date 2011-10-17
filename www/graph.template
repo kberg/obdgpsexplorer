@@ -26,6 +26,7 @@ limitations under the License.
     <script type="text/javascript" src="interaction.js"></script>
     <script type="text/javascript">
       $javascriptFields
+      $javascriptTrips
     </script>
   </head>
   <body>

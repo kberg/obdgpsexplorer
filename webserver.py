@@ -84,14 +84,12 @@ class RequestHandler(BaseHTTPRequestHandler):
     range = getDateRange(conn)
     # Convert to int (1000 * self)
     range = [int(range[0] * 1000), int(range[1] * 1000)]
-    print range
 
     self.renderTemplate("www/about.template",
        fields=fields, rowCount=rowCount,
        earliestDate=range[0], latestDate=range[1])
 
   def processCsv(self, conn):
-
     # Read the schema to find out which fields to export.
     fields = []
     schema = readSchema(conn)
@@ -137,9 +135,12 @@ class RequestHandler(BaseHTTPRequestHandler):
 
     jsfields = "fields=[%s];\n" % ", ".join(map(lambda(x): "\"%s\"" % x, fields));
 
+    trips = getTrips(conn)
+    jstrips = "trips=[%s];\n" % ", ".join(map(lambda(x): "[%d, %d]" % (x[0], x[1]), trips));
+ 
     f = open(curdir + sep + "www/graph.template")
     template = Template(f.read())
-    html = template.substitute(javascriptFields=jsfields)
+    html = template.substitute(javascriptFields=jsfields, javascriptTrips = jstrips)
     self.genericHeader(200, 'text/html')
     self.wfile.write(html)
     f.close()
@@ -223,6 +224,16 @@ def getRowCount(conn, table):
   contents = row[0]
   cur.close
   return int(contents)
+
+def getTrips(conn):
+  data = []
+  cur = conn.cursor();
+  cur.execute("select tripid, start, end from trip");
+  rows = cur
+  for row in rows:
+    data.append([row[1], row[2]]) 
+  cur.close
+  return data
 
 def getDateRange(conn):
   cur = conn.cursor()
