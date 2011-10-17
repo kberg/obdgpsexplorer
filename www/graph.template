@@ -14,6 +14,7 @@
   </head>
   <body>
     <h1>Let's Go Exploring!</h1>
+    <a href="/">Go home</a>
     <table><tr><td>
     <div id="loading">Loading...</div>
     <input id="hideUntilShow" type="button" value="Restore position" onclick="Interaction.restorePositioning(g)" style="display:none;">

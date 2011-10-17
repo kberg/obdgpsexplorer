@@ -1,11 +1,23 @@
 <html>
-<head><title>Schema</title></head>
+<head>
+  <title>Schema</title>
+</head>
 <body>
-<h2>Database Schema</h2>
-Row count: $rowCount </br>
-<table border="1">
-<tr><th>Name</td><th>Type</th></tr>
-$fields
-</table>
+  <a href="/">Go home</a></br>
+  <h2>Database Schema</h2>
+
+  Row count: $rowCount </br>
+  Date Range:<br/>
+  * From: <span id="earliest"></span><br/>
+  * To: <span id="latest"></span>
+
+  <table border="1">
+    <tr><th>Name</td><th>Type</th></tr>
+    $fields
+  </table>
+  <script type="text/javascript">
+    document.getElementById("earliest").innerText = new Date( $earliestDate ).toString();
+    document.getElementById("latest").innerText = new Date( $latestDate ).toString();
+  </script>
 </body>
 </html>

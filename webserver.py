@@ -67,7 +67,15 @@ class RequestHandler(BaseHTTPRequestHandler):
     def fmtline(key, value):
       return "<tr><td>%s</td><td>%s</td></tr>\n" % (key, value)
     fields = "\n".join([ fmtline(key, value) for key, value in schema.items()])
-    self.renderTemplate("www/about.template", fields=fields, rowCount=rowCount)
+
+    range = getDateRange(conn)
+    # Convert to int (1000 * self)
+    range = [int(range[0] * 1000), int(range[1] * 1000)]
+    print range
+
+    self.renderTemplate("www/about.template",
+       fields=fields, rowCount=rowCount,
+       earliestDate=range[0], latestDate=range[1])
 
   def processCsv(self, conn):
 
@@ -132,7 +140,7 @@ class RequestHandler(BaseHTTPRequestHandler):
   def do_GET(self):
     try:
       if self.path == "/":
-        self.renderTemplate("www/root.template", {})
+        self.renderTemplate("www/root.template")
         return
 
       if self.path == "/test":
@@ -200,7 +208,17 @@ def getRowCount(conn, table):
   cur.execute("select count(0) from %s" % table);
   row = cur.fetchone()
   contents = row[0]
+  cur.close
   return int(contents)
+
+def getDateRange(conn):
+  cur = conn.cursor()
+  cur.execute("select min(time), max(time) from obd")
+  row = cur.fetchone()
+  min = row[0]
+  max = row[1]
+  cur.close
+  return [int(min), int(max)]
 
 def parseArgs(argv):
   global db

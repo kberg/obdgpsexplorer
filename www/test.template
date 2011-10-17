@@ -2,6 +2,7 @@
 <head><title>Test page</title></head>
 <body>
   URL: $path
+  <a href="/">Go home</a>
 <hr/>
 <a href="https://github.com/kberg/obdgpsexplorer">obdgpsexplorer</a> Copyright (c) 2011, Robert Konigsberg.
 </body>
