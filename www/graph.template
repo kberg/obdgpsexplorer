@@ -4,18 +4,31 @@
     <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7; IE=EmulateIE9">
     <title>obdgpslogger explorer</title>
     <script type="text/javascript" src="dygraph-combined.js"></script>
+<!-- To debug uncomment this line.
+    <script type="text/javascript" src="http://www.dygraphs.com/dygraph-dev.js"></script>
+-->
+    <script type="text/javascript" src="interaction.js"></script>
     <script type="text/javascript">
       $javascriptFields
     </script>
   </head>
   <body>
+    <h1>Let's Go Exploring!</h1>
     <table><tr><td>
+    <div id="loading">Loading...</div>
+    <input id="hideUntilShow" type="button" value="Restore position" onclick="Interaction.restorePositioning(g)" style="display:none;">
     <div id="graphdiv"></div>
     </td><td valign=top>
     <div id="status" style="width:200px; font-size:0.8em; padding-top:5px;"></div>
     </td>
     </tr></table>
     <div id="fields"></div>
+    To interact with this graph:<br>
+    * Zoom in: double-click<br/>
+    * Zoom out: ctrl-double-click</br>
+    * Standard Zoom: shift-click-drag</br/>
+    * Standard Pan: click-drag<br/>
+    * Restore zoom level: press button<br/>
     <script type="text/javascript">
       function setCheckboxes() {
         var div = document.getElementById("fields");
@@ -25,10 +38,10 @@
           var label = document.createElement("label");
 
           checkbox.type="checkbox";
-          checkbox.onClick = function() { change(checkbox); };
+          checkbox.onclick = function() { change(checkbox); };
           checkbox.id = idx;
           checkbox.checked = 1;
-          label.for=idx;
+          label.for=idx;  // label.for is not working.
           label.innerText = " " + fields[idx];
 
           inner.appendChild(checkbox);
@@ -37,19 +50,22 @@
         }
       }
 
-      function setStatus() {
-        document.getElementById("visibility").innerHTML =
-          g.visibility().toString();
-      }
-
       function change(el) {
         g.setVisibility(parseInt(el.id), el.checked);
-        setStatus();
       }
+
+      var drawCallback = function(g, isInitial) {
+        if (isInitial) {
+          document.getElementById("loading").style.display = "none";
+          document.getElementById("hideUntilShow").style.display = "block";
+        }
+      };
 
       setCheckboxes();
 
-      var dataUrl = window.location.href.replace(/\/graph$/, "csv")
+      // Since this is templatized, the double-dollar-sign is required
+      // and converts to a single dollar sign.
+      var dataUrl = window.location.href.replace(/\/graph$$/, "/csv")
 
       g = new Dygraph(
               document.getElementById("graphdiv"),
@@ -59,14 +75,22 @@
                 labelsSeparateLines: true,
                 labelsKMB: true,
                 legend: 'always',
+                panEdgeFraction: 0.1,
+                drawCallback: drawCallback,
                 width: 640,
                 height: 480,
-                title: 'Cross Country!',
                 xlabel: 'Time',
                 axisLineColor: 'white',
                 // xValueFormatter: Dygraph.dateString_,
                 xValueParser: function(x) { return 1000*parseInt(x); },
                 xTicker: Dygraph.dateTicker,
+                interactionModel : {
+                   'mousedown' : Interaction.down,
+                   'mousemove' : Interaction.move,
+                   'mouseup' : Interaction.up,
+                   'dblclick' : Interaction.dblClick
+                 },
+// Moves RPM to its own axis. This should be in the web server.
                 'rpm': {
                   axis: {}
                 },
