@@ -69,6 +69,9 @@ class RequestHandler(BaseHTTPRequestHandler):
 <head><title>Schema</title></head>
 <body>
 <h2>Database Schema</h2>
+""")
+    self.wfile.write("Row count: %d <br/>\n" % getRowCount(conn, "obd"))
+    self.wfile.write("""
 <table border="1">
 <tr><th>Name</td><th>Type</th></tr>
 """)
@@ -206,9 +209,9 @@ def readSchema(conn):
   cur.close()
   return schema
 
-def countRows(conn, table):
+def getRowCount(conn, table):
   cur = conn.cursor();
-  cur.execute("select count(0) from table");
+  cur.execute("select count(0) from %s" % table);
   row = cur.fetchone()
   contents = row[0]
   return int(contents)
